@@ -1,0 +1,251 @@
+---
+title: "Assessment 2"
+author: "NhanVanCao"
+date: "10/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk
+install.packages("tidyverse")
+library(tidyverse)
+library(skimr)
+```
+
+
+
+
+
+
+
+# Assessment 2
+
+## *Van Nhan Cao *
+## **s4629397**
+---
+
+
+
+
+### Dataset
+
+https://github.com/rfordatascience/tidytuesday/tree/master/data/2018/2018-11-20
+
+Tasks:
+
+See the definition of variables in a separate section “Data dictionary”
+
+To import the data use 
+
+https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv
+```{r}
+data<-read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv")
+```
+
+
+Setup: 5 marks
+
+1. Use the same (=clone a repository) R Project for the assignment2 as you created for Assignment1. Create a new .rmd document "Assignment2.rmd"
+
+2. Use the provided csv file to complete the tasks below. The file needs to be uploaded to your project. You can use the variable name of your choice.
+
+3.  For each question below record your answer in the markdown document that will show the question, your code and the results.
+Your explanation of the data insights is VERY important as well as your code
+
+ 
+
+### Part 2: Data Wrangling and visualization 38 marks
+
+For all tables below, you need to use the RMarkdown functionality to present tables (`kable`). 
+
+1. Display the first 10 rows of the dataset using `kable()` function (1 marks). 
+```{r}
+knitr::kable(data[1:10,])
+```
+
+2. Using `skim()` display the summary of variables. 
+
+#Think about the task to predict a family income based on their menu: what variables may be useful? Are all of them correct type? 
+Write 2-3 sentences with your explanation. (2 marks)
+```{r}
+skim(data)
+```
+
+With the more expensive that it is than other dishes,the variable of main_dish can be considered as good variable because we can predict the family_income from its detail.
+family_income based on their menu:the variables may be useful are probably complete rate, n_missing, min and max. Because the complete_rate is 0.969 meanwhile the n_missing is just 33, which can be explained that the n_missing does not play an important role to impact on the exact of the family_income. Furthermore, min and max help us identify the variance that is 8.
+All of them are correct types because they have been listed fully and all of the variables have numeric and integer.
+
+#Think about the task to predict a community type or US_region based on their menu: what variables may be useful? Are all of them correct type? (2 marks)
+
+Furthermore, main_dish variable can be used to predict US_region or community type when different ethics have different main dishes or the characteristics of people who live in specific regions.
+
+US region based on their menu:the variables may be useful are probably complete rate, n_missing, min and max. Because the complete_rate is 0.944 meanwhile the n_missing is just 33, which can be explained that the n_missing does not play an important role to impact on the exact of the family_income. Furthermore, min and max help us identify the variance that is 11.
+All of them are correct types because they have been listed fully and all of the variables have numeric and integer.
+
+3. Use `fct_reorder` and `parse_number` functions to create a factor variable `family_income`(2 mark).
+```{r}
+data%>%
+  mutate(
+    family_income = fct_reorder(family_income,parse_number(family_income))
+  )
+```
+
+4. What is the number of people who celebrate? (1 mark)
+
+```{r}
+data%>%
+  group_by('celebrate',"yes")%>%
+  summarise(n=n())
+data%>%count('celebrate',"yes")
+
+```
+
+5. What are categories and insights for each main dish served and the method it is prepared? (2 marks)
+
+```{r}
+
+data%>%
+  count(main_dish,sort = TRUE)
+data%>%
+  count(
+    main_prep,sort = TRUE)
+```
+6. Create 3 different data viz showing insights for main dish served and the method. Provide your own legend and use themes.
+Write 2-3 sentences with your explanation of each insight. (4 marks)
+
+
+```{r}
+data %>% 
+  select(main_dish, main_prep)%>% 
+   
+  ggplot(aes(main_dish,main_prep))+geom_point(colour = 'red')+
+  labs(x='Main dish',y='Method',title='Task6.1',caption='Insights')
+```
+
+We can see that:
+Roasted method appears with all of main dishes. Besides, other methods and baked method applied on main dishes follow behind with 6 out of 8 points.Finally, the "I dont know' method is the third popular method when it reaches 5 out of 8 points.
+
+
+
+
+
+```{r}
+theme_set(theme_minimal())
+ggplot(data, aes(main_dish,main_prep)) +
+  geom_point(colour = 'red')+
+  facet_wrap(vars(main_dish)) +
+  coord_flip() +
+  labs(x='Main_dish', y='Methods', title = 'Task6.2') 
+```
+
+We can see that:
+Turkey and other main dish are the most popular ones when it reaches 5 out of 6 points on the scale of methods.
+Chicken, ham/pork and tofurkey are the second ones with 4 out of 6 points.
+Turducken and N/A maindishes just reach 1 out of 6 points.
+
+7. How many use cranberry sauce? How many use gravy? 2marks
+```{r}
+data%>%
+  count(cranberry,sort = TRUE)
+data%>%
+  count(gravy,sort = TRUE)
+
+```
+
+
+
+8-9. What is the distribution of those who celebrate across income ranges. Create a data viz.
+Write 2-3 sentences with your explanation of each insight. (4 marks)
+``` {r}
+
+data<-data %>%
+mutate(income = parse_number(family_income)) %>%
+filter(!is.na(family_income) & !is.na(income))
+
+data %>%
+filter(celebrate == "Yes") %>%
+ggplot(aes(income)) + geom_bar(aes(income)) +
+ggtitle("Task8-9")
+
+```
+
+
+10. Use the following code to create a new data set 2 mark
+
+```{r}
+Task10_assessment2<- data%>%
+select(id, starts_with("side"),
+         starts_with("pie"),
+         starts_with("dessert")) %>%
+  select(-side15, -pie13, -dessert12) %>%
+  gather(type, value, -id) %>%
+  filter(!is.na(value),
+         !value %in% c("None", "Other (please specify)")) %>%
+  mutate(type = str_remove(type, "\\d+"))
+```
+Write 2-3 sentences with your explanation of what it does. (4 marks)
+
+This following code creates a new dataset named Task10_assessment2. In this new dataset, we find out that it gather all the column of Pie, side and dessert to one column only.Furthermore,before gathering all collumns that it wants to, it removes all the value that show the answers of 'none' and 'other(please specify)'. 
+
+
+
+
+
+
+11. Intall package `widyr` and use `pairwise_cor()` function https://www.rdocumentation.org/packages/widyr/versions/0.1.3/topics/pairwise_cor
+Write 2-3 sentences with your explanation of what it does. (2 marks)
+
+Use this code for the new dataset
+```{r}
+install.packages('widyr')
+library(widyr)
+
+
+```
+The package of 'Widyr' is a package of encapsulation with the pattern of untidying data into a wide matrix, performing some processing, then turning it back into a tidy form. 
+
+Write 1 sentence with your explanation of what insights it shows. (2 marks)
+```{r}
+pairwise_cor(value,id,sort = TRUE)
+```
+Cannot run because 'pairwise_cor' is a function to examine the correlation between items in a column. In this case, we do not have enough information about data that the question requires.
+
+
+13. Use `lm()` or randomForest() function to build a model that predict a family income based on data in the dataset. 8 marks
+
+Compare 3 models using different set of input variables. Use different number of variables.
+
+Explain your choice of variables (3 sentences) 
+
+Write 2 sentences explaining which model os best.
+
+```{r}
+install.packages("randomForest")
+library(randomForest)
+data%>%distinct(family_income)
+
+data%>%count(family_income, sort = TRUE)
+#classification for family_income using Random Forest
+
+rf<-randomForest(
+  family_income~main_dish+cranberry+age+community_type,
+  na.action = na.omit,
+  data=data,
+  importance=TRUE
+)
+print(rf)
+```
+
+
+
+
+#### Resources:
+
+RMarkdown tutorial https://rmarkdown.rstudio.com/lesson-1.html
+
+ggplot2: Elegant Graphics for Data Analysis https://ggplot2-book.org/
